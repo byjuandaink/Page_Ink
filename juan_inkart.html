@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InkProgress Studio - Ultimate Dashboard</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #141419;
+            --bg-input: #1f1f26;
+            --text-main: #f3f4f6;
+            --text-muted: #858699;
+            --border: #262630;
+            
+            --neon-juanda: #00f2fe; 
+            --neon-vane: #ff007f;    
+            
+            --status-pending: #f3af3d;
+            --status-progress: #3b82f6;
+            --status-waiting: #ef4444;
+            --status-done: #10b981;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 20px;
+        }
+
+        header {
+            text-align: left;
+            max-width: 1400px;
+            margin: 0 auto 30px auto;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        header h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+            background: linear-gradient(90deg, var(--neon-juanda), var(--neon-vane));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p { color: var(--text-muted); font-size: 0.95rem; margin-top: 5px; }
+
+        h2.seccion-titulo {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 1.2rem;
+            margin: 30px 0 15px 0;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* DISEÑO DE DISEÑO PRINCIPAL (LAYOUT) */
+        .layout-superior {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .layout-superior { grid-template-columns: 1fr; }
+        }
+
+        /* Formularios */
+        .form-contenedor {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .form-contenedor input, .form-contenedor select, .form-contenedor button {
+            outline: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .form-contenedor input { flex: 1; min-width: 150px; }
+        .form-contenedor button {
+            background: var(--text-main);
+            color: var(--bg-dark);
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* TABLERO KANBAN (Inclinado/Alineado a la Izquierda) */
+        .workspace-izquierdo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 20px;
+        }
+
+        .columna-autor {
+            background-color: var(--bg-card);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .col-juanda { border-top: 4px solid var(--neon-juanda); }
+        .col-vane { border-top: 4px solid var(--neon-vane); }
+
+        .columna-autor h2 { font-size: 1.25rem; font-weight: 700; margin-top: 0; margin-bottom: 15px; text-transform: uppercase; }
+        .col-juanda h2 { color: var(--neon-juanda); }
+        .col-vane h2 { color: var(--neon-vane); }
+
+        .lista-tareas { display: flex; flex-direction: column; gap: 15px; }
+
+        /* Tarjeta de Tarea */
+        .tarjeta-tarea {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .badge-frecuencia {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background-color: rgba(255,255,255,0.06);
+            color: var(--text-muted);
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
+        .tarjeta-tarea p { font-size: 0.95rem; line-height: 1.4; margin: 10px 0; }
+
+        .gestion-tarea {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .desplegable-estado select {
+            appearance: none;
+            background-color: var(--bg-dark);
+            padding: 6px 20px 6px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .sel-pendiente { border-color: var(--status-pending) !important; color: var(--status-pending) !important; }
+        .sel-en-curso { border-color: var(--status-progress) !important; color: var(--status-progress) !important; }
+        .sel-en-espera { border-color: var(--status-waiting) !important; color: var(--status-waiting) !important; }
+        .sel-finalizado { border-color: var(--status-done) !important; color: var(--status-done) !important; }
+
+        .btn-eliminar { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.8rem; opacity: 0.7; }
+
+        /* Comentarios */
+        .seccion-comentarios h4 { margin: 0 0 5px 0; font-size: 0.75rem; color: var(--text-muted); }
+        .lista-comentarios { font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto; margin-bottom: 8px; }
+        .comentario-item { background-color: rgba(255,255,255,0.02); padding: 4px 8px; border-radius: 4px; color: #cbd5e1; }
+        .input-comentario { display: flex; gap: 5px; }
+        .input-comentario input { flex: 1; font-size: 0.75rem; padding: 5px; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 4px; }
+        .input-comentario button { background: var(--border); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+
+        /* BLOQUE DERECHO: CALENDARIO Y AGENDA */
+        .sidebar-derecho {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .widget-calendario {
+            background-color: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 15px;
+        }
+
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .cal-header h3 { margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .cal-header button { background: none; border: none; color: var(--text-main); cursor: pointer; font-size: 1rem; }
+
+        .cal-dias-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .cal-cuadricula {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-celda {
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            color: #ccc;
+            background-color: rgba(255,255,255,0.02);
+            position: relative;
+        }
+
+        .cal-celda.vacia { background: transparent; }
+        .cal-celda.hoy { background-color: #333; font-weight: bold; border: 1px solid var(--text-muted); }
+        /* Resaltado de días con eventos */
+        .cal-celda.con-evento {
+            box-shadow: inset 0 0 0 2px var(--neon-vane);
+            font-weight: bold;
+        }
+
+        /* Lista de Eventos */
+        .widget-eventos {
+            background-color: var(--bg-card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 15px;
+        }
+
+        .lista-eventos-agendados {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .evento-item {
+            background: var(--bg-input);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            border-left: 3px solid var(--neon-vane);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .evento-item span { color: var(--text-muted); font-size: 0.75rem; }
+
+        /* SECCIÓN INFERIOR: FINANZAS E IDEAS */
+        .seccion-inferior {
+            max-width: 1400px;
+            margin: 40px auto 0 auto;
+        }
+
+        .tabla-contenedor {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            padding: 10px;
+        }
+
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+        .txt-ganancia { color: var(--status-done); font-weight: 700; }
+
+        .totales-box {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+        .total-item text-align: center;
+        .total-item p { margin: 0; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+        .total-item span { font-size: 1.2rem; font-weight: 800; display: block; margin-top: 4px; }
+
+        /* BANCO DE IDEAS (Checklist General) */
+        .banco-ideas {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .lista-ideas {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .idea-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-input);
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .idea-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--neon-juanda);
+        }
+
+        .idea-texto { flex: 1; font-size: 0.9rem; }
+        .idea-item.completada .idea-texto {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>InkProgress Workspace</h1>
+        <p>⚡ JuanDa & Vane • Suite Ágil de Gestión, Agenda y Finanzas para Tatuadores</p>
+    </header>
+
+    <!-- BLOQUE SUPERIOR (Tablero a la Izquierda, Calendario a la Derecha) -->
+    <div class="layout-superior">
+        
+        <!-- LADO IZQUIERDO: FORMULARIO Y KANBAN -->
+        <div>
+            <h2 class="seccion-titulo">📋 Sprint & Metas Diarias / Semanales</h2>
+            <div class="form-contenedor">
+                <input type="text" id="texto-tarea" placeholder="Nueva meta o tarea...">
+                <select id="responsable">
+                    <option value="juanda">💀 JuanDa</option>
+                    <option value="vane">🔮 Vane</option>
+                </select>
+                <select id="tipo-meta">
+                    <option value="Diaria">⚡ Diaria</option>
+                    <option value="Semanal">🗓️ Semanal</option>
+                    <option value="Sprint">🚀 Sprint</option>
+                </select>
+                <button onclick="crearTarea()">+ Añadir</button>
+            </div>
+
+            <div class="workspace-izquierdo">
+                <div class="columna-autor col-juanda">
+                    <h2>☠️ Lista JuanDa</h2>
+                    <div class="lista-tareas" id="lista-juanda"></div>
+                </div>
+                <div class="columna-autor col-vane">
+                    <h2>🔮 Lista Vane</h2>
+                    <div class="lista-tareas" id="lista-vane"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LADO DERECHO: CALENDARIO Y EVENTOS -->
+        <div class="sidebar-derecho">
+            <h2 class="seccion-titulo">📅 Agenda de Citas</h2>
+            
+            <!-- Calendario Visual -->
+            <div class="widget-calendario">
+                <div class="cal-header">
+                    <button onclick="mesAnterior()">◀</button>
+                    <h3 id="cal-mes-ano">Junio 2026</h3>
+                    <button onclick="mesSiguiente()">▶</button>
+                </div>
+                <div class="cal-dias-semana">
+                    <div>DO</div><div>LU</div><div>MA</div><div>MI</div><div>JU</div><div>VI</div><div>SA</div>
+                </div>
+                <div class="cal-cuadricula" id="cal-dias-cuadricula"></div>
+            </div>
+
+            <!-- Programador de Eventos -->
+            <div class="widget-eventos">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <input type="date" id="evt-fecha" style="padding:8px; background:var(--bg-input); border:1px solid var(--border); color:white; border-radius:6px; font-size:0.8rem;">
+                    <input type="text" id="evt-texto" placeholder="Ej: Cita Pedro Espalda / Abono" style="padding:8px; background:var(--bg-input); border:1px solid var(--border); color:white; border-radius:6px; font-size:0.8rem;">
+                    <button onclick="agregarEvento()" style="padding:8px; background:var(--text-main); color:var(--bg-dark); border:none; font-weight:bold; border-radius:6px; cursor:pointer; font-size:0.8rem;">Agendar Fecha</button>
+                </div>
+
+                <div class="lista-eventos-agendados" id="lista-eventos-ui"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SECCIÓN INFERIOR: FINANZAS E IDEAS -->
+    <div class="seccion-inferior">
+        
+        <h2 class="seccion-titulo">💰 Control de Caja y Presupuestos (COP)</h2>
+        <div class="form-contenedor">
+            <input type="text" id="fin-cliente" placeholder="Cliente">
+            <input type="text" id="fin-diseno" placeholder="Diseño/Estilo">
+            <input type="number" id="fin-costo" placeholder="Costo ($)">
+            <input type="number" id="fin-gasto" placeholder="Gasto Material ($)">
+            <input type="number" id="fin-publicidad" placeholder="Publicidad ($)">
+            <button onclick="registrarTatuaje()" style="background-color: var(--status-done); color: white;">+ Registrar</button>
+        </div>
+
+        <div class="totales-box">
+            <div class="total-item"><p>Ingresos Brutos</p><span id="total-ingresos">$0</span></div>
+            <div class="total-item"><p>Gastos Totales</p><span id="total-gastos" style="color:var(--status-waiting);">$0</span></div>
+            <div class="total-item"><p>Ganancia Neta Real</p><span id="total-neto" style="color:var(--status-done);">$0</span></div>
+        </div>
+
+        <div class="tabla-contenedor">
+            <table>
+                <thead>
+                    <tr><th>Cliente</th><th>Diseño</th><th>Costo</th><th>Gasto Op.</th><th>Publicidad</th><th>Ganancia Neta</th><th>Acción</th></tr>
+                </thead>
+                <tbody id="cuerpo-tabla-finanzas"></tbody>
+            </table>
+        </div>
+
+        <!-- CHECKLIST GENERAL / BANCO DE IDEAS PENDIENTES -->
+        <div class="banco-ideas">
+            <h2 class="seccion-titulo" style="margin:0;">💡 Banco de Ideas y Proyectos Pendientes</h2>
+            <p style="color: var(--text-muted); font-size:0.85rem; margin: 5px 0 15px 0;">Espacio libre para ideas de Reels, Flashes por dibujar, promos o remodelaciones del estudio.</p>
+            
+            <div class="input-comentario" style="max-width: 500px;">
+                <input type="text" id="nueva-idea-txt" placeholder="Ej: Comprar luces LED rojas, armar promo de tattoos minimalistas...">
+                <button onclick="agregarIdea()">+ Añadir Idea</button>
+            </div>
+
+            <div class="lista-ideas" id="ui-lista-ideas"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // Bases de datos locales e inicialización
+        let tareas = JSON.parse(localStorage.getItem('inkTasksV4')) || [];
+        let finanzas = JSON.parse(localStorage.getItem('inkFinanzasV2')) || [];
+        let eventos = JSON.parse(localStorage.getItem('inkEventosV1')) || [];
+        let ideas = JSON.parse(localStorage.getItem('inkIdeasV1')) || [];
+
+        let fechaActualCalendario = new Date();
+
+        const formatearCOP = (valor) => {
+            return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
+        };
+
+        function sincronizarTodo() {
+            localStorage.setItem('inkTasksV4', JSON.stringify(tareas));
+            localStorage.setItem('inkFinanzasV2', JSON.stringify(finanzas));
+            localStorage.setItem('inkEventosV1', JSON.stringify(eventos));
+            localStorage.setItem('inkIdeasV1', JSON.stringify(ideas));
+            
+            renderizarTablero();
+            renderizarFinanzas();
+            renderizarCalendario();
+            renderizarEventosLista();
+        }
+
+        // --- SISTEMA KANBAN (METAS) ---
+        function crearTarea() {
+            const input = document.getElementById('texto-tarea');
+            if (!input.value.trim()) return;
+            tareas.push({
+                id: Date.now(),
+                texto: input.value,
+                responsable: document.getElementById('responsable').value,
+                tipo: document.getElementById('tipo-meta').value,
+                estado: 'pendiente',
+                comentarios: []
+            });
+            input.value = '';
+            sincronizarTodo();
+        }
+
+        function cambiarEstado(id, nuevoEstado) {
+            const t = tareas.find(x => x.id === id);
+            if (t) { t.estado = nuevoEstado; sincronizarTodo(); }
+        }
+
+        function eliminarTarea(id) {
+            if(confirm('¿Eliminar esta meta?')) { tareas = tareas.filter(x => x.id !== id); sincronizarTodo(); }
+        }
+
+        function agregarComentario(id, inputId) {
+            const input = document.getElementById(inputId);
+            if (!input.value.trim()) return;
+            const t = tareas.find(x => x.id === id);
+            if (t) { t.comentarios.push(input.value); input.value = ''; sincronizarTodo(); }
+        }
+
+        function renderizarTablero() {
+            document.getElementById('lista-juanda').innerHTML = '';
+            document.getElementById('lista-vane').innerHTML = '';
+
+            tareas.forEach(tarea => {
+                const tarjeta = document.createElement('div');
+                tarjeta.className = 'tarjeta-tarea';
+                let coms = '';
+                tarea.comentarios.forEach(c => { coms += `<div class="comentario-item">👁️‍🗨️ ${c}</div>`; });
+
+                let claseEstado = 'sel-pendiente';
+                if (tarea.estado === 'en-curso') claseEstado = 'sel-en-curso';
+                if (tarea.estado === 'en-espera') claseEstado = 'sel-en-espera';
+                if (tarea.estado === 'finalizado') claseEstado = 'sel-finalizado';
+
+                tarjeta.innerHTML = `
+                    <div><span class="badge-frecuencia">${tarea.tipo}</span></div>
+                    <p>${tarea.texto}</p>
+                    <div class="gestion-tarea">
+                        <div class="desplegable-estado">
+                            <select class="${claseEstado}" onchange="cambiarEstado(${tarea.id}, this.value)">
+                                <option value="pendiente" ${tarea.estado === 'pendiente' ? 'selected' : ''}>📌 Pendiente</option>
+                                <option value="en-curso" ${tarea.estado === 'en-curso' ? 'selected' : ''}>⚡ En Curso</option>
+                                <option value="en-espera" ${tarea.estado === 'en-espera' ? 'selected' : ''}>⏳ En Espera</option>
+                                <option value="finalizado" ${tarea.estado === 'finalizado' ? 'selected' : ''}>✨ Finalizado</option>
+                            </select>
+                        </div>
+                        <button class="btn-eliminar" onclick="eliminarTarea(${tarea.id})">❌</button>
+                    </div>
+                    <div class="seccion-comentarios">
+                        <div class="lista-comentarios">${coms || '<span style="color:var(--text-muted); font-size:0.75rem;">Sin notas...</span>'}</div>
+                        <div class="input-comentario">
+                            <input type="text" id="input-com-${tarea.id}" placeholder="Nota...">
+                            <button onclick="agregarComentario(${tarea.id}, 'input-com-${tarea.id}')">📂</button>
+                        </div>
+                    </div>
+                `;
+
+                if (tarea.responsable === 'juanda') document.getElementById('lista-juanda').appendChild(tarjeta);
+                else document.getElementById('lista-vane').appendChild(tarjeta);
+            });
+        }
+
+        // --- CALENDARIO & AGENDA ---
+        const mesesAnos = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        function renderizarCalendario() {
+            const contenedor = document.getElementById('cal-dias-cuadricula');
+            contenedor.innerHTML = '';
+            
+            const año = fechaActualCalendario.getFullYear();
+            const mes = fechaActualCalendario.getMonth();
+            
+            document.getElementById('cal-mes-ano').innerText = `${mesesAnos[mes]} ${año}`;
+
+            const primerDiaIndex = new Date(año, mes, 1).getDay();
+            const ultimoDiaFecha = new Date(año, mes + 1, 0).getDate();
+
+            // Espacios vacíos del mes anterior
+            for (let i = 0; i < primerDiaIndex; i++) {
+                const celdaVacia = document.createElement('div');
+                celdaVacia.className = 'cal-celda vacia';
+                contenedor.appendChild(celdaVacia);
+            }
+
+            // Días reales del mes
+            const hoyObj = new Date();
+            for (let dia = 1; dia <= ultimoDiaFecha; dia++) {
+                const celda = document.createElement('div');
+                celda.className = 'cal-celda';
+                celda.innerText = dia;
+
+                // Crear string en formato YYYY-MM-DD local manual para comparar eventos
+                const mesFormateado = String(mes + 1).padStart(2, '0');
+                const diaFormateado = String(dia).padStart(2, '0');
+                const fechaStringClave = `${año}-${mesFormateado}-${diaFormateado}`;
+
+                // Validar si tiene eventos agendados
+                const tieneEvento = eventos.some(e => e.fecha === fechaStringClave);
+                if (tieneEvento) celda.classList.add('con-evento');
+
+                // Validar si es el día de hoy real
+                if (hoyObj.getDate() === dia && hoyObj.getMonth() === mes && hoyObj.getFullYear() === año) {
+                    celda.classList.add('hoy');
+                }
+
+                contenedor.appendChild(celda);
+            }
+        }
+
+        function mesAnterior() { fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() - 1); renderizarCalendario(); }
+        function mesSiguiente() { fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() + 1); renderizarCalendario(); }
+
+        function agregarEvento() {
+            const fechaInput = document.getElementById('evt-fecha').value;
+            const textoInput = document.getElementById('evt-texto').value.trim();
+
+            if (!fechaInput || !textoInput) return alert('Por favor selecciona una fecha y detalla el evento.');
+
+            eventos.push({ id: Date.now(), fecha: fechaInput, texto: textoInput });
+            document.getElementById('evt-texto').value = '';
+            sincronizarTodo();
+        }
+
+        function eliminarEvento(id) {
+            eventos = eventos.filter(e => e.id !== id);
+            sincronizarTodo();
+        }
+
+        function renderizarEventosLista() {
+            const listaUi = document.getElementById('lista-eventos-ui');
+            listaUi.innerHTML = '';
+            
+            // Ordenar eventos por fecha más cercana
+            eventos.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+            eventos.forEach(e => {
+                const item = document.createElement('div');
+                item.className = 'evento-item';
+                item.innerHTML = `
+                    <div><strong>${e.texto}</strong> <br> <span>📅 ${e.fecha}</span></div>
+                    <button onclick="eliminarEvento(${e.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
+                `;
+                listaUi.appendChild(item);
+            });
+        }
+
+        // --- CONTABILIDAD / FINANZAS ---
+        function registrarTatuaje() {
+            const cliente = document.getElementById('fin-cliente').value.trim();
+            const diseno = document.getElementById('fin-diseno').value.trim();
+            const costo = parseFloat(document.getElementById('fin-costo').value) || 0;
+            const gasto = parseFloat(document.getElementById('fin-gasto').value) || 0;
+            const publicidad = parseFloat(document.getElementById('fin-publicidad').value) || 0;
+
+            if(!cliente || !diseno) return alert('Por favor llena los campos obligatorios de Cliente y Diseño.');
+
+            finanzas.push({ id: Date.now(), cliente, diseno, costo, gasto, publicidad, gananciaNeta: costo - (gasto + publicidad) });
+            
+            document.getElementById('fin-cliente').value = ''; document.getElementById('fin-diseno').value = '';
+            document.getElementById('fin-costo').value = ''; document.getElementById('fin-gasto').value = ''; document.getElementById('fin-publicidad').value = '';
+            
+            sincronizarTodo();
+        }
+
+        function eliminarFinanza(id) {
+            if(confirm('¿Eliminar registro financiero?')) { finanzas = finanzas.filter(f => f.id !== id); sincronizarTodo(); }
+        }
+
+        function renderizarFinanzas() {
+            const tbody = document.getElementById('cuerpo-tabla-finanzas');
+            tbody.innerHTML = '';
+            let brutos = 0, gastos = 0, netos = 0;
+
+            finanzas.forEach(f => {
+                brutos += f.costo; gastos += (f.gasto + f.publicidad); netos += f.gananciaNeta;
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td><b>${f.cliente}</b></td><td>${f.diseno}</td><td>${formatearCOP(f.costo)}</td><td>${formatearCOP(f.gasto)}</td><td>${formatearCOP(f.publicidad)}</td><td class="txt-ganancia">${formatearCOP(f.gananciaNeta)}</td>
+                    <td><button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="eliminarFinanza(${f.id})">🗑️</button></td>
+                `;
+                tbody.appendChild(fila);
+            });
+
+            document.getElementById('total-ingresos').innerText = formatearCOP(brutos);
+            document.getElementById('total-gastos').innerText = formatearCOP(gastos);
+            document.getElementById('total-neto').innerText = formatearCOP(netos);
+        }
+
+        // --- BANCO DE IDEAS (CHECKLIST GENERAL) ---
+        function agregarIdea() {
+            const input = document.getElementById('nueva-idea-txt');
+            if(!input.value.trim()) return;
+
+            ideas.push({ id: Date.now(), texto: input.value.trim(), completada: false });
+            input.value = '';
+            sincronizarTodo();
+        }
+
+        function alternarIdea(id) {
+            const idea = ideas.find(i => i.id === id);
+            if (idea) { idea.completada = !idea.completada; sincronizarTodo(); }
+        }
+
+        function eliminarIdea(id) {
+            ideas = ideas.filter(i => i.id !== id);
+            sincronizarTodo();
+        }
+
+        function renderizarIdeas() {
+            const contenedor = document.getElementById('ui-lista-ideas');
+            contenedor.innerHTML = '';
+
+            ideas.forEach(idea => {
+                const div = document.createElement('div');
+                div.className = `idea-item ${idea.completada ? 'completada' : ''}`;
+                div.innerHTML = `
+                    <input type="checkbox" onchange="alternarIdea(${idea.id})" ${idea.completada ? 'checked' : ''}>
+                    <div class="idea-texto">${idea.texto}</div>
+                    <button onclick="eliminarIdea(${idea.id})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.8rem;">✕</button>
+                `;
+                contenedor.appendChild(div);
+            });
+        }
+
+        // --- EJECUCIÓN MAESTRA INITIAL ---
+        renderizarTablero();
+        renderizarFinanzas();
+        renderizarCalendario();
+        renderizarEventosLista();
+        renderizarIdeas();
+    </script>
+</body>
+</html>
