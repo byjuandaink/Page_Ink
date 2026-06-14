@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>InkProgress Studio - Live Cloud Dashboard</title>
-    <!-- Incluir librerías de Firebase antiguas pero estables para scripts directos -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
@@ -361,7 +360,7 @@
                 <h1>InkProgress Workspace</h1>
                 <p>⚡ JuanDa & Vane • Suite Ágil de Gestión, Agenda y Finanzas para Tatuadores</p>
             </div>
-            <div class="cloud-badge">● Nube Sincronizada Activa</div>
+            <div class="cloud-badge">● Sincronización Simultánea Activa</div>
         </div>
     </header>
 
@@ -471,7 +470,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Estructuras de datos locales sincronizadas con la nube
+        // Estructuras de datos locales
         let tareas = [];
         let finanzas = [];
         let eventos = [];
@@ -483,51 +482,59 @@
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
         };
 
-        // Escuchar cambios en la base de datos en tiempo real (Nube -> Interfaz)
-        db.ref().on('value', (snapshot) => {
+        // --- ESCUCHADORES EN TIEMPO REAL (RECOLECTAN Y ENVIAN EN VIVO) ---
+        
+        // 1. Escuchar Tareas
+        db.ref('tareas').on('value', (snapshot) => {
             const data = snapshot.val() || {};
-            tareas = data.tareas ? Object.values(data.tareas) : [];
-            finanzas = data.finanzas ? Object.values(data.finanzas) : [];
-            eventos = data.eventos ? Object.values(data.eventos) : [];
-            ideas = data.ideas ? Object.values(data.ideas) : [];
-            
+            tareas = Object.values(data);
             renderizarTablero();
+        });
+
+        // 2. Escuchar Finanzas
+        db.ref('finanzas').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            finanzas = Object.values(data);
             renderizarFinanzas();
+        });
+
+        // 3. Escuchar Eventos/Agenda
+        db.ref('eventos').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            eventos = Object.values(data);
             renderizarCalendario();
             renderizarEventosLista();
+        });
+
+        // 4. Escuchar Banco de Ideas
+        db.ref('ideas').on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            ideas = Object.values(data);
             renderizarIdeas();
         });
 
-        function guardarEnNube(nodo, datos) {
-            // Convierte arrays a estructuras compatibles indexadas por ID
-            const datosIndexados = {};
-            datos.forEach(item => { datosIndexados[item.id] = item; });
-            db.ref(nodo).set(datosIndexados);
-        }
 
+        // --- FUNCIONES DE GUARDADO SEGURO POR NODO INDIVIDUAL ---
+        
         // --- KANBAN ---
         function crearTarea() {
             const input = document.getElementById('texto-tarea');
             if (!input.value.trim()) return;
+            const idUnico = Date.now();
             const nueva = {
-                id: Date.now(),
+                id: idUnico,
                 texto: input.value,
                 responsable: document.getElementById('responsable').value,
                 tipo: document.getElementById('tipo-meta').value,
                 estado: 'pendiente',
                 comentarios: [""]
             };
-            tareas.push(nueva);
             input.value = '';
-            guardarEnNube('tareas', tareas);
+            db.ref(`tareas/${idUnico}`).set(nueva);
         }
 
         function cambiarEstado(id, nuevoEstado) {
-            const t = tareas.find(x => x.id === id);
-            if (t) { 
-                t.estado = nuevoEstado; 
-                guardarEnNube('tareas', tareas);
-            }
+            db.ref(`tareas/${id}`).update({ estado: nuevoEstado });
         }
 
         function eliminarTarea(id) {
@@ -539,12 +546,13 @@
         function agregarComentario(id, inputId) {
             const input = document.getElementById(inputId);
             if (!input.value.trim()) return;
+            
             const t = tareas.find(x => x.id === id);
             if (t) { 
-                if(!t.comentarios) t.comentarios = [];
-                t.comentarios.push(input.value); 
+                let comsActuales = t.comentarios ? [...t.comentarios] : [];
+                comsActuales.push(input.value);
                 input.value = ''; 
-                guardarEnNube('tareas', tareas);
+                db.ref(`tareas/${id}`).update({ comentarios: comsActuales });
             }
         }
 
@@ -647,9 +655,11 @@
 
             if (!fechaInput || !textoInput) return alert('Por favor selecciona una fecha y detalla el evento.');
 
-            eventos.push({ id: Date.now(), fecha: fechaInput, texto: textoInput });
+            const idUnico = Date.now();
+            const nuevoEvento = { id: idUnico, fecha: fechaInput, texto: textoInput };
             document.getElementById('evt-texto').value = '';
-            guardarEnNube('eventos', eventos);
+            
+            db.ref(`eventos/${idUnico}`).set(nuevoEvento);
         }
 
         function eliminarEvento(id) {
@@ -682,12 +692,21 @@
 
             if(!cliente || !diseno) return alert('Por favor llena los campos obligatorios de Cliente y Diseño.');
 
-            finanzas.push({ id: Date.now(), cliente, diseno, costo, gasto, publicidad, gananciaNeta: costo - (gasto + publicidad) });
+            const idUnico = Date.now();
+            const nuevaFinanza = { 
+                id: idUnico, 
+                cliente, 
+                diseno, 
+                costo, 
+                gasto, 
+                publicidad, 
+                gananciaNeta: costo - (gasto + publicidad) 
+            };
             
             document.getElementById('fin-cliente').value = ''; document.getElementById('fin-diseno').value = '';
             document.getElementById('fin-costo').value = ''; document.getElementById('fin-gasto').value = ''; document.getElementById('fin-publicidad').value = '';
             
-            guardarEnNube('finanzas', finanzas);
+            db.ref(`finanzas/${idUnico}`).set(nuevaFinanza);
         }
 
         function eliminarFinanza(id) {
@@ -721,16 +740,17 @@
             const input = document.getElementById('nueva-idea-txt');
             if(!input.value.trim()) return;
 
-            ideas.push({ id: Date.now(), texto: input.value.trim(), completada: false });
+            const idUnico = Date.now();
+            const nuevaIdea = { id: idUnico, texto: input.value.trim(), completada: false };
             input.value = '';
-            guardarEnNube('ideas', ideas);
+            
+            db.ref(`ideas/${idUnico}`).set(nuevaIdea);
         }
 
         function alternarIdea(id) {
             const idea = ideas.find(i => i.id === id);
             if (idea) { 
-                idea.completada = !idea.completada; 
-                guardarEnNube('ideas', ideas);
+                db.ref(`ideas/${id}`).update({ completada: !idea.completada });
             }
         }
 
