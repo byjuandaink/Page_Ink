@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>InkProgress Studio - Ultimate Dashboard</title>
+    <title>InkProgress Studio - Live Cloud Dashboard</title>
+    <!-- Incluir librerías de Firebase antiguas pero estables para scripts directos -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <style>
         :root {
             --bg-dark: #0a0a0c;
@@ -62,7 +65,6 @@
             gap: 10px;
         }
 
-        /* DISEÑO DE DISEÑO PRINCIPAL (LAYOUT) */
         .layout-superior {
             display: grid;
             grid-template-columns: 1fr 350px;
@@ -76,7 +78,6 @@
             .layout-superior { grid-template-columns: 1fr; }
         }
 
-        /* Formularios */
         .form-contenedor {
             background-color: var(--bg-card);
             padding: 20px;
@@ -107,7 +108,6 @@
             border: none;
         }
 
-        /* TABLERO KANBAN (Inclinado/Alineado a la Izquierda) */
         .workspace-izquierdo {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -130,7 +130,6 @@
 
         .lista-tareas { display: flex; flex-direction: column; gap: 15px; }
 
-        /* Tarjeta de Tarea */
         .tarjeta-tarea {
             background-color: var(--bg-input);
             border: 1px solid var(--border);
@@ -177,7 +176,6 @@
 
         .btn-eliminar { background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.8rem; opacity: 0.7; }
 
-        /* Comentarios */
         .seccion-comentarios h4 { margin: 0 0 5px 0; font-size: 0.75rem; color: var(--text-muted); }
         .lista-comentarios { font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; max-height: 80px; overflow-y: auto; margin-bottom: 8px; }
         .comentario-item { background-color: rgba(255,255,255,0.02); padding: 4px 8px; border-radius: 4px; color: #cbd5e1; }
@@ -185,7 +183,6 @@
         .input-comentario input { flex: 1; font-size: 0.75rem; padding: 5px; background: var(--bg-dark); border: 1px solid var(--border); color: white; border-radius: 4px; }
         .input-comentario button { background: var(--border); color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
 
-        /* BLOQUE DERECHO: CALENDARIO Y AGENDA */
         .sidebar-derecho {
             display: flex;
             flex-direction: column;
@@ -237,13 +234,11 @@
 
         .cal-celda.vacia { background: transparent; }
         .cal-celda.hoy { background-color: #333; font-weight: bold; border: 1px solid var(--text-muted); }
-        /* Resaltado de días con eventos */
         .cal-celda.con-evento {
             box-shadow: inset 0 0 0 2px var(--neon-vane);
             font-weight: bold;
         }
 
-        /* Lista de Eventos */
         .widget-eventos {
             background-color: var(--bg-card);
             border-radius: 14px;
@@ -273,7 +268,6 @@
 
         .evento-item span { color: var(--text-muted); font-size: 0.75rem; }
 
-        /* SECCIÓN INFERIOR: FINANZAS E IDEAS */
         .seccion-inferior {
             max-width: 1400px;
             margin: 40px auto 0 auto;
@@ -303,11 +297,10 @@
             border: 1px solid var(--border);
             margin-bottom: 15px;
         }
-        .total-item text-align: center;
+        .total-item { text-align: center; }
         .total-item p { margin: 0; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
         .total-item span { font-size: 1.2rem; font-weight: 800; display: block; margin-top: 4px; }
 
-        /* BANCO DE IDEAS (Checklist General) */
         .banco-ideas {
             background-color: var(--bg-card);
             border-radius: 12px;
@@ -345,19 +338,34 @@
             text-decoration: line-through;
             color: var(--text-muted);
         }
+
+        .cloud-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--status-done);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>InkProgress Workspace</h1>
-        <p>⚡ JuanDa & Vane • Suite Ágil de Gestión, Agenda y Finanzas para Tatuadores</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+                <h1>InkProgress Workspace</h1>
+                <p>⚡ JuanDa & Vane • Suite Ágil de Gestión, Agenda y Finanzas para Tatuadores</p>
+            </div>
+            <div class="cloud-badge">● Nube Sincronizada Activa</div>
+        </div>
     </header>
 
-    <!-- BLOQUE SUPERIOR (Tablero a la Izquierda, Calendario a la Derecha) -->
     <div class="layout-superior">
-        
-        <!-- LADO IZQUIERDO: FORMULARIO Y KANBAN -->
         <div>
             <h2 class="seccion-titulo">📋 Sprint & Metas Diarias / Semanales</h2>
             <div class="form-contenedor">
@@ -386,11 +394,9 @@
             </div>
         </div>
 
-        <!-- LADO DERECHO: CALENDARIO Y EVENTOS -->
         <div class="sidebar-derecho">
             <h2 class="seccion-titulo">📅 Agenda de Citas</h2>
             
-            <!-- Calendario Visual -->
             <div class="widget-calendario">
                 <div class="cal-header">
                     <button onclick="mesAnterior()">◀</button>
@@ -403,7 +409,6 @@
                 <div class="cal-cuadricula" id="cal-dias-cuadricula"></div>
             </div>
 
-            <!-- Programador de Eventos -->
             <div class="widget-eventos">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <input type="date" id="evt-fecha" style="padding:8px; background:var(--bg-input); border:1px solid var(--border); color:white; border-radius:6px; font-size:0.8rem;">
@@ -414,12 +419,9 @@
                 <div class="lista-eventos-agendados" id="lista-eventos-ui"></div>
             </div>
         </div>
-
     </div>
 
-    <!-- SECCIÓN INFERIOR: FINANZAS E IDEAS -->
     <div class="seccion-inferior">
-        
         <h2 class="seccion-titulo">💰 Control de Caja y Presupuestos (COP)</h2>
         <div class="form-contenedor">
             <input type="text" id="fin-cliente" placeholder="Cliente">
@@ -445,27 +447,35 @@
             </table>
         </div>
 
-        <!-- CHECKLIST GENERAL / BANCO DE IDEAS PENDIENTES -->
         <div class="banco-ideas">
             <h2 class="seccion-titulo" style="margin:0;">💡 Banco de Ideas y Proyectos Pendientes</h2>
-            <p style="color: var(--text-muted); font-size:0.85rem; margin: 5px 0 15px 0;">Espacio libre para ideas de Reels, Flashes por dibujar, promos o remodelaciones del estudio.</p>
+            <p style="color: var(--text-muted); font-size:0.85rem; margin: 5px 0 15px 0;">Espacio libre para ideas de Reels, Flashes por dibujar o promos.</p>
             
             <div class="input-comentario" style="max-width: 500px;">
-                <input type="text" id="nueva-idea-txt" placeholder="Ej: Comprar luces LED rojas, armar promo de tattoos minimalistas...">
+                <input type="text" id="nueva-idea-txt" placeholder="Ej: Comprar luces LED rojas...">
                 <button onclick="agregarIdea()">+ Añadir Idea</button>
             </div>
 
             <div class="lista-ideas" id="ui-lista-ideas"></div>
         </div>
-
     </div>
 
     <script>
-        // Bases de datos locales e inicialización
-        let tareas = JSON.parse(localStorage.getItem('inkTasksV4')) || [];
-        let finanzas = JSON.parse(localStorage.getItem('inkFinanzasV2')) || [];
-        let eventos = JSON.parse(localStorage.getItem('inkEventosV1')) || [];
-        let ideas = JSON.parse(localStorage.getItem('inkIdeasV1')) || [];
+        // --- CONFIGURACIÓN DE FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAwvijazedVaZNk8gixlHsZBLU3jOk-73U",
+            databaseURL: "https://dashboard-96326-default-rtdb.firebaseio.com"
+        };
+        
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Estructuras de datos locales sincronizadas con la nube
+        let tareas = [];
+        let finanzas = [];
+        let eventos = [];
+        let ideas = [];
 
         let fechaActualCalendario = new Date();
 
@@ -473,48 +483,69 @@
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
         };
 
-        function sincronizarTodo() {
-            localStorage.setItem('inkTasksV4', JSON.stringify(tareas));
-            localStorage.setItem('inkFinanzasV2', JSON.stringify(finanzas));
-            localStorage.setItem('inkEventosV1', JSON.stringify(eventos));
-            localStorage.setItem('inkIdeasV1', JSON.stringify(ideas));
+        // Escuchar cambios en la base de datos en tiempo real (Nube -> Interfaz)
+        db.ref().on('value', (snapshot) => {
+            const data = snapshot.val() || {};
+            tareas = data.tareas ? Object.values(data.tareas) : [];
+            finanzas = data.finanzas ? Object.values(data.finanzas) : [];
+            eventos = data.eventos ? Object.values(data.eventos) : [];
+            ideas = data.ideas ? Object.values(data.ideas) : [];
             
             renderizarTablero();
             renderizarFinanzas();
             renderizarCalendario();
             renderizarEventosLista();
+            renderizarIdeas();
+        });
+
+        function guardarEnNube(nodo, datos) {
+            // Convierte arrays a estructuras compatibles indexadas por ID
+            const datosIndexados = {};
+            datos.forEach(item => { datosIndexados[item.id] = item; });
+            db.ref(nodo).set(datosIndexados);
         }
 
-        // --- SISTEMA KANBAN (METAS) ---
+        // --- KANBAN ---
         function crearTarea() {
             const input = document.getElementById('texto-tarea');
             if (!input.value.trim()) return;
-            tareas.push({
+            const nueva = {
                 id: Date.now(),
                 texto: input.value,
                 responsable: document.getElementById('responsable').value,
                 tipo: document.getElementById('tipo-meta').value,
                 estado: 'pendiente',
-                comentarios: []
-            });
+                comentarios: [""]
+            };
+            tareas.push(nueva);
             input.value = '';
-            sincronizarTodo();
+            guardarEnNube('tareas', tareas);
         }
 
         function cambiarEstado(id, nuevoEstado) {
             const t = tareas.find(x => x.id === id);
-            if (t) { t.estado = nuevoEstado; sincronizarTodo(); }
+            if (t) { 
+                t.estado = nuevoEstado; 
+                guardarEnNube('tareas', tareas);
+            }
         }
 
         function eliminarTarea(id) {
-            if(confirm('¿Eliminar esta meta?')) { tareas = tareas.filter(x => x.id !== id); sincronizarTodo(); }
+            if(confirm('¿Eliminar esta meta?')) { 
+                db.ref(`tareas/${id}`).remove();
+            }
         }
 
         function agregarComentario(id, inputId) {
             const input = document.getElementById(inputId);
             if (!input.value.trim()) return;
             const t = tareas.find(x => x.id === id);
-            if (t) { t.comentarios.push(input.value); input.value = ''; sincronizarTodo(); }
+            if (t) { 
+                if(!t.comentarios) t.comentarios = [];
+                t.comentarios.push(input.value); 
+                input.value = ''; 
+                guardarEnNube('tareas', tareas);
+            }
         }
 
         function renderizarTablero() {
@@ -525,7 +556,11 @@
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta-tarea';
                 let coms = '';
-                tarea.comentarios.forEach(c => { coms += `<div class="comentario-item">👁️‍🗨️ ${c}</div>`; });
+                if(tarea.comentarios) {
+                    tarea.comentarios.forEach(c => { 
+                        if(c) coms += `<div class="comentario-item">👁️‍🗨️ ${c}</div>`; 
+                    });
+                }
 
                 let claseEstado = 'sel-pendiente';
                 if (tarea.estado === 'en-curso') claseEstado = 'sel-en-curso';
@@ -560,11 +595,12 @@
             });
         }
 
-        // --- CALENDARIO & AGENDA ---
+        // --- CALENDARIO ---
         const mesesAnos = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
         function renderizarCalendario() {
             const contenedor = document.getElementById('cal-dias-cuadricula');
+            if(!contenedor) return;
             contenedor.innerHTML = '';
             
             const año = fechaActualCalendario.getFullYear();
@@ -575,30 +611,25 @@
             const primerDiaIndex = new Date(año, mes, 1).getDay();
             const ultimoDiaFecha = new Date(año, mes + 1, 0).getDate();
 
-            // Espacios vacíos del mes anterior
             for (let i = 0; i < primerDiaIndex; i++) {
                 const celdaVacia = document.createElement('div');
                 celdaVacia.className = 'cal-celda vacia';
                 contenedor.appendChild(celdaVacia);
             }
 
-            // Días reales del mes
             const hoyObj = new Date();
             for (let dia = 1; dia <= ultimoDiaFecha; dia++) {
                 const celda = document.createElement('div');
                 celda.className = 'cal-celda';
                 celda.innerText = dia;
 
-                // Crear string en formato YYYY-MM-DD local manual para comparar eventos
                 const mesFormateado = String(mes + 1).padStart(2, '0');
                 const diaFormateado = String(dia).padStart(2, '0');
                 const fechaStringClave = `${año}-${mesFormateado}-${diaFormateado}`;
 
-                // Validar si tiene eventos agendados
                 const tieneEvento = eventos.some(e => e.fecha === fechaStringClave);
                 if (tieneEvento) celda.classList.add('con-evento');
 
-                // Validar si es el día de hoy real
                 if (hoyObj.getDate() === dia && hoyObj.getMonth() === mes && hoyObj.getFullYear() === año) {
                     celda.classList.add('hoy');
                 }
@@ -618,19 +649,16 @@
 
             eventos.push({ id: Date.now(), fecha: fechaInput, texto: textoInput });
             document.getElementById('evt-texto').value = '';
-            sincronizarTodo();
+            guardarEnNube('eventos', eventos);
         }
 
         function eliminarEvento(id) {
-            eventos = eventos.filter(e => e.id !== id);
-            sincronizarTodo();
+            db.ref(`eventos/${id}`).remove();
         }
 
         function renderizarEventosLista() {
             const listaUi = document.getElementById('lista-eventos-ui');
             listaUi.innerHTML = '';
-            
-            // Ordenar eventos por fecha más cercana
             eventos.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
 
             eventos.forEach(e => {
@@ -644,7 +672,7 @@
             });
         }
 
-        // --- CONTABILIDAD / FINANZAS ---
+        // --- FINANZAS ---
         function registrarTatuaje() {
             const cliente = document.getElementById('fin-cliente').value.trim();
             const diseno = document.getElementById('fin-diseno').value.trim();
@@ -659,11 +687,13 @@
             document.getElementById('fin-cliente').value = ''; document.getElementById('fin-diseno').value = '';
             document.getElementById('fin-costo').value = ''; document.getElementById('fin-gasto').value = ''; document.getElementById('fin-publicidad').value = '';
             
-            sincronizarTodo();
+            guardarEnNube('finanzas', finanzas);
         }
 
         function eliminarFinanza(id) {
-            if(confirm('¿Eliminar registro financiero?')) { finanzas = finanzas.filter(f => f.id !== id); sincronizarTodo(); }
+            if(confirm('¿Eliminar registro financiero?')) { 
+                db.ref(`finanzas/${id}`).remove();
+            }
         }
 
         function renderizarFinanzas() {
@@ -686,24 +716,26 @@
             document.getElementById('total-neto').innerText = formatearCOP(netos);
         }
 
-        // --- BANCO DE IDEAS (CHECKLIST GENERAL) ---
+        // --- IDEAS ---
         function agregarIdea() {
             const input = document.getElementById('nueva-idea-txt');
             if(!input.value.trim()) return;
 
             ideas.push({ id: Date.now(), texto: input.value.trim(), completada: false });
             input.value = '';
-            sincronizarTodo();
+            guardarEnNube('ideas', ideas);
         }
 
         function alternarIdea(id) {
             const idea = ideas.find(i => i.id === id);
-            if (idea) { idea.completada = !idea.completada; sincronizarTodo(); }
+            if (idea) { 
+                idea.completada = !idea.completada; 
+                guardarEnNube('ideas', ideas);
+            }
         }
 
         function eliminarIdea(id) {
-            ideas = ideas.filter(i => i.id !== id);
-            sincronizarTodo();
+            db.ref(`ideas/${id}`).remove();
         }
 
         function renderizarIdeas() {
@@ -721,13 +753,6 @@
                 contenedor.appendChild(div);
             });
         }
-
-        // --- EJECUCIÓN MAESTRA INITIAL ---
-        renderizarTablero();
-        renderizarFinanzas();
-        renderizarCalendario();
-        renderizarEventosLista();
-        renderizarIdeas();
     </script>
 </body>
 </html>
