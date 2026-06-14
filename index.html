@@ -350,6 +350,80 @@
             align-items: center;
             gap: 6px;
         }
+
+        /* ── NUEVOS ESTILOS CALCULADORA DE PRECIOS ── */
+        .factors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .factor-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .factor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .factor-title { font-size: 1rem; font-weight: 600; color: var(--text-main); }
+        .badge-calc {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+        .badge-calc.red { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .badge-calc.amber { background: rgba(243, 175, 61, 0.15); color: var(--status-pending); }
+        .badge-calc.purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+        .factor-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px; }
+        .slider-row { display: flex; align-items: center; gap: 12px; }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            flex: 1;
+            height: 6px;
+            border-radius: 4px;
+            background: var(--bg-input);
+            outline: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--text-main);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .slider-val { font-size: 0.85rem; font-weight: 700; color: var(--neon-juanda); min-width: 85px; text-align: right; }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .result-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 15px; text-align: center; }
+        .result-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
+        .result-num { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
+        .result-num.highlight { color: var(--status-done); text-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+        .seccion-doble-calc-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        @media (max-width: 768px) { .seccion-doble-calc-info { grid-template-columns: 1fr; } }
+        .ref-card, .errors-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+        .ref-row, .error-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+        .ref-row:last-child, .error-row:last-child { border-bottom: none; }
+        .ref-row span:first-child { color: var(--text-muted); }
+        .ref-row span:last-child { font-weight: 600; color: var(--text-main); }
+        .error-row { justify-content: flex-start; gap: 10px; }
+        .icon-x { color: #ef4444; font-weight: bold; }
+        .icon-chk { color: var(--status-done); font-weight: bold; }
+        .tip-box { background: rgba(83, 74, 183, 0.1); border-left: 4px solid #534AB7; padding: 12px 15px; border-radius: 0 10px 10px 0; font-size: 0.8rem; color: #cbd5e1; line-height: 1.5; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -420,6 +494,103 @@
         </div>
     </div>
 
+    <!-- SECCIÓN INTERMEDIA: CALCULADORA DE PRECIOS -->
+    <div class="seccion-inferior">
+        <h2 class="seccion-titulo">🧮 Calculadora Inteligente de Presupuestos</h2>
+        
+        <div class="factors-grid">
+            <!-- Valor Hora -->
+            <div class="factor-card">
+                <div class="factor-header">
+                    <span class="factor-title">Tiempo de sesión</span>
+                    <span class="badge-calc red">El más importante</span>
+                </div>
+                <p class="factor-desc">Valor por hora de trabajo en el estudio.</p>
+                <div class="slider-row">
+                    <input type="range" min="50000" max="300000" step="10000" value="100000" id="calc-hora" oninput="calcularPresupuesto()">
+                    <span class="slider-val" id="calc-hora-out">$100.000/h</span>
+                </div>
+            </div>
+            <!-- Horas Estimadas -->
+            <div class="factor-card">
+                <div class="factor-header">
+                    <span class="factor-title">Horas estimadas</span>
+                    <span class="badge-calc amber">Por diseño</span>
+                </div>
+                <p class="factor-desc">Pequeño: 1–2h. Mediano: 3–5h. Grande/Manga: 6h+.</p>
+                <div class="slider-row">
+                    <input type="range" min="1" max="10" step="0.5" value="3" id="calc-horas" oninput="calcularPresupuesto()">
+                    <span class="slider-val" id="calc-horas-out">3h</span>
+                </div>
+            </div>
+            <!-- Complejidad -->
+            <div class="factor-card">
+                <div class="factor-header">
+                    <span class="factor-title">Complejidad del diseño</span>
+                    <span class="badge-calc amber">Recargo</span>
+                </div>
+                <p class="factor-desc">Técnica, nivel de detalle y personalización.</p>
+                <select id="calc-complejidad" onchange="calcularPresupuesto()" style="width:100%; padding:10px; background:var(--bg-input); color:white; border:1px solid var(--border); border-radius:8px;">
+                    <option value="1">Diseño simple (sin recargo)</option>
+                    <option value="1.2" selected>Diseño personalizado (+20%)</option>
+                    <option value="1.4">Alta complejidad / detalle (+40%)</option>
+                    <option value="1.6">Diseño muy avanzado (+60%)</option>
+                </select>
+            </div>
+            <!-- Materiales -->
+            <div class="factor-card">
+                <div class="factor-header">
+                    <span class="factor-title">Materiales</span>
+                    <span class="badge-calc purple">Costo fijo</span>
+                </div>
+                <p class="factor-desc">Agujas, tintas, guantes, insumos de bioseguridad.</p>
+                <div class="slider-row">
+                    <input type="range" min="10000" max="80000" step="5000" value="30000" id="calc-materiales" oninput="calcularPresupuesto()">
+                    <span class="slider-val" id="calc-mat-out">$30.000</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-grid">
+            <div class="result-card">
+                <p class="result-label">Precio base (Sin ganancia)</p>
+                <div class="result-num" id="calc-res-base">$330.000</div>
+            </div>
+            <div class="result-card" style="border: 1px solid var(--status-done);">
+                <p class="result-label" style="color:var(--status-done)">Precio recomendado (+30%)</p>
+                <div class="result-num highlight" id="calc-res-rec">$429.000</div>
+            </div>
+            <div class="result-card">
+                <p class="result-label">Precio premium (+60%)</p>
+                <div class="result-num" id="calc-res-prem">$528.000</div>
+            </div>
+        </div>
+
+        <div class="seccion-doble-calc-info">
+            <!-- Referencia -->
+            <div class="ref-card">
+                <h4 style="margin-bottom:10px; text-transform:uppercase; font-size:0.75rem; color:var(--text-muted);">Tabla de referencia Bogotá</h4>
+                <div class="ref-row"><span>Tatuaje pequeño (1–2h)</span><span>$80.000 – $200.000</span></div>
+                <div class="ref-row"><span>Tatuaje mediano (3–5h)</span><span>$250.000 – $600.000</span></div>
+                <div class="ref-row"><span>Tatuaje grande (6h+)</span><span>$600.000 – $1.500.000</span></div>
+                <div class="ref-row"><span>Media manga / manga completa</span><span>$1.500.000 – $4.000.000+</span></div>
+                <div class="ref-row"><span>Depósito para separar cita</span><span>30–50% del total</span></div>
+            </div>
+            <!-- Errores -->
+            <div class="errors-card">
+                <h4 style="margin-bottom:10px; text-transform:uppercase; font-size:0.75rem; color:var(--text-muted);">Tips de cobro</h4>
+                <div class="error-row"><span class="icon-x">✕</span><span>Cobrar solo por el tatuaje, no por el diseño</span></div>
+                <div class="error-row"><span class="icon-x">✕</span><span>No cobrar depósito (Riesgo de Cancelación)</span></div>
+                <div class="error-row"><span class="icon-x">✕</span><span>Bajar el precio por presión del cliente</span></div>
+                <div class="error-row"><span class="icon-chk">✓</span><span>El cliente que regatea no es el cliente ideal</span></div>
+                <div class="tip-box">
+                    <strong>Nota de nivel:</strong> JuanDa con su nivel en Black & Grey realismo debe competir por calidad y posicionarse en los rangos superiores.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN INFERIOR: FINANZAS -->
     <div class="seccion-inferior">
         <h2 class="seccion-titulo">💰 Control de Caja y Presupuestos (COP)</h2>
         <div class="form-contenedor">
@@ -482,7 +653,26 @@
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
         };
 
-        // --- ESCUCHADORES EN TIEMPO REAL (RECOLECTAN Y ENVIAN EN VIVO) ---
+        // --- LÓGICA DE LA CALCULADORA DE PRECIOS ---
+        function calcularPresupuesto() {
+            const hora = parseInt(document.getElementById('calc-hora').value);
+            const horas = parseFloat(document.getElementById('calc-horas').value);
+            const complejidad = parseFloat(document.getElementById('calc-complejidad').value);
+            const materiales = parseInt(document.getElementById('calc-materiales').value);
+
+            document.getElementById('calc-hora-out').textContent = formatearCOP(hora) + '/h';
+            document.getElementById('calc-horas-out').textContent = horas + 'h';
+            document.getElementById('calc-mat-out').textContent = formatearCOP(materiales);
+
+            const base = (hora * horas * complejidad) + materiales;
+            
+            document.getElementById('calc-res-base').textContent = formatearCOP(base);
+            document.getElementById('calc-res-rec').textContent = formatearCOP(base * 1.3);
+            document.getElementById('calc-res-prem').textContent = formatearCOP(base * 1.6);
+        }
+
+
+        // --- ESCUCHADORES EN TIEMPO REAL ---
         
         // 1. Escuchar Tareas
         db.ref('tareas').on('value', (snapshot) => {
@@ -514,8 +704,6 @@
         });
 
 
-        // --- FUNCIONES DE GUARDADO SEGURO POR NODO INDIVIDUAL ---
-        
         // --- KANBAN ---
         function crearTarea() {
             const input = document.getElementById('texto-tarea');
@@ -773,6 +961,11 @@
                 contenedor.appendChild(div);
             });
         }
+
+        // Inicialización por defecto de la calculadora al cargar
+        window.onload = function() {
+            calcularPresupuesto();
+        };
     </script>
 </body>
 </html>
