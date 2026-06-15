@@ -351,7 +351,7 @@
             gap: 6px;
         }
 
-        /* ── NUEVOS ESTILOS CALCULADORA DE PRECIOS ── */
+        /* ── ESTILOS CALCULADORA DE PRECIOS Y AGREGADOS ── */
         .factors-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -383,6 +383,7 @@
         .badge-calc.purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
         .factor-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px; }
         .slider-row { display: flex; align-items: center; gap: 12px; }
+        
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -403,6 +404,7 @@
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
         .slider-val { font-size: 0.85rem; font-weight: 700; color: var(--neon-juanda); min-width: 85px; text-align: right; }
+        
         .results-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -413,8 +415,10 @@
         .result-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
         .result-num { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
         .result-num.highlight { color: var(--status-done); text-shadow: 0 0 10px rgba(16, 185, 129, 0.2); }
+        
         .seccion-doble-calc-info { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
         @media (max-width: 768px) { .seccion-doble-calc-info { grid-template-columns: 1fr; } }
+        
         .ref-card, .errors-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
         .ref-row, .error-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         .ref-row:last-child, .error-row:last-child { border-bottom: none; }
@@ -424,6 +428,18 @@
         .icon-x { color: #ef4444; font-weight: bold; }
         .icon-chk { color: var(--status-done); font-weight: bold; }
         .tip-box { background: rgba(83, 74, 183, 0.1); border-left: 4px solid #534AB7; padding: 12px 15px; border-radius: 0 10px 10px 0; font-size: 0.8rem; color: #cbd5e1; line-height: 1.5; margin-top: 15px; }
+
+        .tabla-historico-contenedor { margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 25px; }
+        .btn-guardar-calc { background: var(--neon-juanda); color: var(--bg-dark); border: none; padding: 12px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 15px; text-transform: uppercase; font-size: 0.85rem; }
+        .btn-eliminar-registro { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        
+        .inputs-horario-militar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+        .input-militar { padding: 8px; background: var(--bg-input); border: 1px solid var(--border); color: white; border-radius: 6px; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
+        
+        .seccion-objetivos { margin-top: 30px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+        .grid-objetivo { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
+        .grid-objetivo input { flex: 1; min-width: 150px; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: white; border-radius: 6px; }
+        .btn-objetivo { background: var(--status-done); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -485,21 +501,26 @@
             <div class="widget-eventos">
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <input type="date" id="evt-fecha" style="padding:8px; background:var(--bg-input); border:1px solid var(--border); color:white; border-radius:6px; font-size:0.8rem;">
+                    
+                    <div class="inputs-horario-militar">
+                        <input type="time" id="evt-hora-inicio" class="input-militar" title="Hora de inicio">
+                        <input type="time" id="evt-hora-fin" class="input-militar" title="Hora de finalización">
+                    </div>
+
                     <input type="text" id="evt-texto" placeholder="Ej: Cita Pedro Espalda / Abono" style="padding:8px; background:var(--bg-input); border:1px solid var(--border); color:white; border-radius:6px; font-size:0.8rem;">
                     <button onclick="agregarEvento()" style="padding:8px; background:var(--text-main); color:var(--bg-dark); border:none; font-weight:bold; border-radius:6px; cursor:pointer; font-size:0.8rem;">Agendar Fecha</button>
                 </div>
 
+                <h4 style="margin: 15px 0 5px 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">⏰ Cronograma del Día</h4>
                 <div class="lista-eventos-agendados" id="lista-eventos-ui"></div>
             </div>
         </div>
     </div>
 
-    <!-- SECCIÓN INTERMEDIA: CALCULADORA DE PRECIOS -->
     <div class="seccion-inferior">
         <h2 class="seccion-titulo">🧮 Calculadora Inteligente de Presupuestos</h2>
         
         <div class="factors-grid">
-            <!-- Valor Hora -->
             <div class="factor-card">
                 <div class="factor-header">
                     <span class="factor-title">Tiempo de sesión</span>
@@ -511,7 +532,6 @@
                     <span class="slider-val" id="calc-hora-out">$100.000/h</span>
                 </div>
             </div>
-            <!-- Horas Estimadas -->
             <div class="factor-card">
                 <div class="factor-header">
                     <span class="factor-title">Horas estimadas</span>
@@ -523,7 +543,6 @@
                     <span class="slider-val" id="calc-horas-out">3h</span>
                 </div>
             </div>
-            <!-- Complejidad -->
             <div class="factor-card">
                 <div class="factor-header">
                     <span class="factor-title">Complejidad del diseño</span>
@@ -537,7 +556,6 @@
                     <option value="1.6">Diseño muy avanzado (+60%)</option>
                 </select>
             </div>
-            <!-- Materiales -->
             <div class="factor-card">
                 <div class="factor-header">
                     <span class="factor-title">Materiales</span>
@@ -566,8 +584,23 @@
             </div>
         </div>
 
+        <button class="btn-guardar-calc" onclick="guardarCotizacion()">💾 Guardar Cotización en Histórico</button>
+
+        <div class="tabla-historico-contenedor">
+            <h4 style="margin-bottom:10px; font-size:0.85rem; color:var(--text-main); text-transform:uppercase;">📜 Historial de Cotizaciones Guardadas</h4>
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th><th>V. Hora</th><th>Horas</th><th>Complejidad</th><th>Insumos</th><th>P. Recomendado</th><th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-historico"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div class="seccion-doble-calc-info">
-            <!-- Referencia -->
             <div class="ref-card">
                 <h4 style="margin-bottom:10px; text-transform:uppercase; font-size:0.75rem; color:var(--text-muted);">Tabla de referencia Bogotá</h4>
                 <div class="ref-row"><span>Tatuaje pequeño (1–2h)</span><span>$80.000 – $200.000</span></div>
@@ -576,7 +609,6 @@
                 <div class="ref-row"><span>Media manga / manga completa</span><span>$1.500.000 – $4.000.000+</span></div>
                 <div class="ref-row"><span>Depósito para separar cita</span><span>30–50% del total</span></div>
             </div>
-            <!-- Errores -->
             <div class="errors-card">
                 <h4 style="margin-bottom:10px; text-transform:uppercase; font-size:0.75rem; color:var(--text-muted);">Tips de cobro</h4>
                 <div class="error-row"><span class="icon-x">✕</span><span>Cobrar solo por el tatuaje, no por el diseño</span></div>
@@ -590,7 +622,6 @@
         </div>
     </div>
 
-    <!-- SECCIÓN INFERIOR: FINANZAS -->
     <div class="seccion-inferior">
         <h2 class="seccion-titulo">💰 Control de Caja y Presupuestos (COP)</h2>
         <div class="form-contenedor">
@@ -628,6 +659,29 @@
 
             <div class="lista-ideas" id="ui-lista-ideas"></div>
         </div>
+
+        <div class="seccion-objetivos">
+            <h2 class="seccion-titulo" style="margin-top:0;">🎯 Definición de Objetivos (InkProgress)</h2>
+            <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 15px;">Establece metas financieras y de tiempo claras (Ej: Comprar insumos premium, Meta de ahorro mensual).</p>
+            
+            <div class="grid-objetivo">
+                <input type="text" id="obj-nombre" placeholder="Nombre del Objetivo">
+                <input type="number" id="obj-precio" placeholder="Precio Estimado ($)">
+                <input type="text" id="obj-tiempo" placeholder="Tiempo Estimado (Ej: 3 Semanas)">
+                <button class="btn-objetivo" onclick="agregarObjetivo()">+ Añadir Meta</button>
+            </div>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Meta / Proyecto</th><th>Presupuesto Requerido</th><th>Plazo Estimado</th><th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-tabla-objetivos"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -637,15 +691,16 @@
             databaseURL: "https://dashboard-96326-default-rtdb.firebaseio.com"
         };
         
-        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Estructuras de datos locales
+        // Estructuras locales
         let tareas = [];
         let finanzas = [];
         let eventos = [];
         let ideas = [];
+        let historicoCotizaciones = [];
+        let objetivos = [];
 
         let fechaActualCalendario = new Date();
 
@@ -653,42 +708,19 @@
             return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valor);
         };
 
-        // --- LÓGICA DE LA CALCULADORA DE PRECIOS ---
-        function calcularPresupuesto() {
-            const hora = parseInt(document.getElementById('calc-hora').value);
-            const horas = parseFloat(document.getElementById('calc-horas').value);
-            const complejidad = parseFloat(document.getElementById('calc-complejidad').value);
-            const materiales = parseInt(document.getElementById('calc-materiales').value);
-
-            document.getElementById('calc-hora-out').textContent = formatearCOP(hora) + '/h';
-            document.getElementById('calc-horas-out').textContent = horas + 'h';
-            document.getElementById('calc-mat-out').textContent = formatearCOP(materiales);
-
-            const base = (hora * horas * complejidad) + materiales;
-            
-            document.getElementById('calc-res-base').textContent = formatearCOP(base);
-            document.getElementById('calc-res-rec').textContent = formatearCOP(base * 1.3);
-            document.getElementById('calc-res-prem').textContent = formatearCOP(base * 1.6);
-        }
-
-
         // --- ESCUCHADORES EN TIEMPO REAL ---
-        
-        // 1. Escuchar Tareas
         db.ref('tareas').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             tareas = Object.values(data);
             renderizarTablero();
         });
 
-        // 2. Escuchar Finanzas
         db.ref('finanzas').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             finanzas = Object.values(data);
             renderizarFinanzas();
         });
 
-        // 3. Escuchar Eventos/Agenda
         db.ref('eventos').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             eventos = Object.values(data);
@@ -696,15 +728,54 @@
             renderizarEventosLista();
         });
 
-        // 4. Escuchar Banco de Ideas
         db.ref('ideas').on('value', (snapshot) => {
             const data = snapshot.val() || {};
             ideas = Object.values(data);
             renderizarIdeas();
         });
 
+        db.ref("historicoCotizaciones").on("value", (snapshot) => {
+            const datos = snapshot.val();
+            const tbody = document.getElementById("cuerpo-tabla-historico");
+            tbody.innerHTML = "";
+            if (datos) {
+                for (let id in datos) {
+                    const item = datos[id];
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${item.fecha}</td>
+                            <td>${formatearCOP(item.hora)}</td>
+                            <td>${item.horas}h</td>
+                            <td><small>${item.complejidad}</small></td>
+                            <td>${formatearCOP(item.materiales)}</td>
+                            <td style="color:var(--status-done); font-weight:bold;">${formatearCOP(item.recomendado)}</td>
+                            <td><button class="btn-eliminar-registro" onclick="eliminarCotizacion('${id}')">✕</button></td>
+                        </tr>
+                    `;
+                }
+            }
+        });
 
-        // --- KANBAN ---
+        db.ref("objetivos").on("value", (snapshot) => {
+            const datos = snapshot.val();
+            const tbody = document.getElementById("cuerpo-tabla-objetivos");
+            tbody.innerHTML = "";
+            if (datos) {
+                for (let id in datos) {
+                    const obj = datos[id];
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-weight:600; color:var(--text-main);">🎯 ${obj.nombre}</td>
+                            <td style="color:var(--neon-juanda); font-weight:bold;">${formatearCOP(obj.precio)}</td>
+                            <td><span style="background:rgba(83, 74, 183, 0.2); color:#a855f7; padding:2px 8px; border-radius:12px; font-size:0.75rem;">⏱️ ${obj.tiempo}</span></td>
+                            <td><button class="btn-eliminar-registro" onclick="eliminarObjetivo('${id}')">✕</button></td>
+                        </tr>
+                    `;
+                }
+            }
+        });
+
+        // --- METODOS KANBAN METAS ---
         function crearTarea() {
             const input = document.getElementById('texto-tarea');
             if (!input.value.trim()) return;
@@ -726,15 +797,12 @@
         }
 
         function eliminarTarea(id) {
-            if(confirm('¿Eliminar esta meta?')) { 
-                db.ref(`tareas/${id}`).remove();
-            }
+            if(confirm('¿Eliminar esta meta?')) db.ref(`tareas/${id}`).remove();
         }
 
         function agregarComentario(id, inputId) {
             const input = document.getElementById(inputId);
             if (!input.value.trim()) return;
-            
             const t = tareas.find(x => x.id === id);
             if (t) { 
                 let comsActuales = t.comentarios ? [...t.comentarios] : [];
@@ -747,17 +815,13 @@
         function renderizarTablero() {
             document.getElementById('lista-juanda').innerHTML = '';
             document.getElementById('lista-vane').innerHTML = '';
-
             tareas.forEach(tarea => {
                 const tarjeta = document.createElement('div');
                 tarjeta.className = 'tarjeta-tarea';
                 let coms = '';
                 if(tarea.comentarios) {
-                    tarea.comentarios.forEach(c => { 
-                        if(c) coms += `<div class="comentario-item">👁️‍🗨️ ${c}</div>`; 
-                    });
+                    tarea.comentarios.forEach(c => { if(c) coms += `<div class="comentario-item">👁️‍🗨️ ${c}</div>`; });
                 }
-
                 let claseEstado = 'sel-pendiente';
                 if (tarea.estado === 'en-curso') claseEstado = 'sel-en-curso';
                 if (tarea.estado === 'en-espera') claseEstado = 'sel-en-espera';
@@ -785,23 +849,59 @@
                         </div>
                     </div>
                 `;
-
                 if (tarea.responsable === 'juanda') document.getElementById('lista-juanda').appendChild(tarjeta);
                 else document.getElementById('lista-vane').appendChild(tarjeta);
             });
         }
 
-        // --- CALENDARIO ---
-        const mesesAnos = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        // --- LÓGICA CALCULADORA E HISTORIAL ---
+        function calcularPresupuesto() {
+            const hora = parseInt(document.getElementById('calc-hora').value);
+            const horas = parseFloat(document.getElementById('calc-horas').value);
+            const complejidad = parseFloat(document.getElementById('calc-complejidad').value);
+            const materiales = parseInt(document.getElementById('calc-materiales').value);
 
+            document.getElementById('calc-hora-out').textContent = formatearCOP(hora) + '/h';
+            document.getElementById('calc-horas-out').textContent = horas + 'h';
+            document.getElementById('calc-mat-out').textContent = formatearCOP(materiales);
+
+            const base = (hora * horas * complejidad) + materiales;
+            document.getElementById('calc-res-base').textContent = formatearCOP(base);
+            document.getElementById('calc-res-rec').textContent = formatearCOP(base * 1.3);
+            document.getElementById('calc-res-prem').textContent = formatearCOP(base * 1.6);
+        }
+
+        function guardarCotizacion() {
+            const hora = parseInt(document.getElementById('calc-hora').value);
+            const horas = parseFloat(document.getElementById('calc-horas').value);
+            const complejidadText = document.getElementById('calc-complejidad').options[document.getElementById('calc-complejidad').selectedIndex].text;
+            const materiales = parseInt(document.getElementById('calc-materiales').value);
+            const base = (hora * horas * parseFloat(document.getElementById('calc-complejidad').value)) + materiales;
+            
+            const nuevaCotizacion = {
+                fecha: new Date().toLocaleDateString('es-CO'),
+                hora: hora,
+                horas: horas,
+                complejidad: complejidadText,
+                materiales: materiales,
+                recomendado: base * 1.3
+            };
+            db.ref("historicoCotizaciones").push(nuevaCotizacion);
+        }
+
+        function eliminarCotizacion(id) {
+            if(confirm("¿Eliminar cotización?")) db.ref("historicoCotizaciones").child(id).remove();
+        }
+
+        // --- LÓGICA CALENDARIO MILITAR 24H ---
+        const mesesAnos = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+        
         function renderizarCalendario() {
             const contenedor = document.getElementById('cal-dias-cuadricula');
             if(!contenedor) return;
             contenedor.innerHTML = '';
-            
             const año = fechaActualCalendario.getFullYear();
             const mes = fechaActualCalendario.getMonth();
-            
             document.getElementById('cal-mes-ano').innerText = `${mesesAnos[mes]} ${año}`;
 
             const primerDiaIndex = new Date(año, mes, 1).getDay();
@@ -818,17 +918,12 @@
                 const celda = document.createElement('div');
                 celda.className = 'cal-celda';
                 celda.innerText = dia;
-
                 const mesFormateado = String(mes + 1).padStart(2, '0');
                 const diaFormateado = String(dia).padStart(2, '0');
                 const fechaStringClave = `${año}-${mesFormateado}-${diaFormateado}`;
 
-                const tieneEvento = eventos.some(e => e.fecha === fechaStringClave);
-                if (tieneEvento) celda.classList.add('con-evento');
-
-                if (hoyObj.getDate() === dia && hoyObj.getMonth() === mes && hoyObj.getFullYear() === año) {
-                    celda.classList.add('hoy');
-                }
+                if (eventos.some(e => e.fecha === fechaStringClave)) celda.classList.add('con-evento');
+                if (hoyObj.getDate() === dia && hoyObj.getMonth() === mes && hoyObj.getFullYear() === año) celda.classList.add('hoy');
 
                 contenedor.appendChild(celda);
             }
@@ -838,39 +933,57 @@
         function mesSiguiente() { fechaActualCalendario.setMonth(fechaActualCalendario.getMonth() + 1); renderizarCalendario(); }
 
         function agregarEvento() {
-            const fechaInput = document.getElementById('evt-fecha').value;
-            const textoInput = document.getElementById('evt-texto').value.trim();
+            const fecha = document.getElementById("evt-fecha").value;
+            const horaInicio = document.getElementById("evt-hora-inicio").value;
+            const horaFin = document.getElementById("evt-hora-fin").value;
+            const texto = document.getElementById("evt-texto").value.trim();
 
-            if (!fechaInput || !textoInput) return alert('Por favor selecciona una fecha y detalla el evento.');
+            if (!fecha || !texto || !horaInicio || !horaFin) return alert("Completa fecha, rango horario y descripción.");
 
-            const idUnico = Date.now();
-            const nuevoEvento = { id: idUnico, fecha: fechaInput, texto: textoInput };
-            document.getElementById('evt-texto').value = '';
+            const [hIni, mIni] = horaInicio.split(':').map(Number);
+            const [hFin, mFin] = horaFin.split(':').map(Number);
+            const totalMinutos = (hFin * 60 + mFin) - (hIni * 60 + mIni);
             
-            db.ref(`eventos/${idUnico}`).set(nuevoEvento);
-        }
+            if (totalMinutos <= 0) return alert("La hora de finalización debe ser posterior a la de inicio.");
 
-        function eliminarEvento(id) {
-            db.ref(`eventos/${id}`).remove();
+            const hDur = Math.floor(totalMinutos / 60);
+            const mDur = totalMinutos % 60;
+            const duracion = `${hDur > 0 ? hDur + 'h ' : ''}${mDur > 0 ? mDur + 'm' : ''}`;
+
+            const nuevo = { fecha, horaInicio, horaFin, duracion, texto };
+            db.ref("eventos").push(nuevo);
+
+            document.getElementById("evt-texto").value = "";
+            document.getElementById("evt-hora-inicio").value = "";
+            document.getElementById("evt-hora-fin").value = "";
         }
 
         function renderizarEventosLista() {
             const listaUi = document.getElementById('lista-eventos-ui');
             listaUi.innerHTML = '';
-            eventos.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-
-            eventos.forEach(e => {
-                const item = document.createElement('div');
-                item.className = 'evento-item';
-                item.innerHTML = `
-                    <div><strong>${e.texto}</strong> <br> <span>📅 ${e.fecha}</span></div>
-                    <button onclick="eliminarEvento(${e.id})" style="background:none; border:none; color:#ef4444; cursor:pointer;">✕</button>
-                `;
-                listaUi.appendChild(item);
+            
+            // Re-vincular snapshots mapeados con su llave primaria (ID) para eliminación directa de nodos de Firebase
+            db.ref("eventos").once("value", (snapshot) => {
+                const datos = snapshot.val();
+                if(datos) {
+                    for(let id in datos) {
+                        const evt = datos[id];
+                        listaUi.innerHTML += `
+                            <div style="background:var(--bg-input); padding:10px; border-radius:6px; border-left:4px solid var(--neon-juanda); margin-bottom:8px; font-size:0.8rem; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <span style="color:var(--text-main); font-weight:bold;">[${evt.horaInicio} - ${evt.horaFin}]</span> 
+                                    <span style="color:var(--text-muted); font-size:0.75rem;">(${evt.duracion})</span><br>
+                                    <span style="color:#cbd5e1;">${evt.texto}</span> <small style="color:#64748b;">(${evt.fecha})</small>
+                                </div>
+                                <button class="btn-eliminar-registro" onclick="db.ref('eventos').child('${id}').remove()">✕</button>
+                            </div>
+                        `;
+                    }
+                }
             });
         }
 
-        // --- FINANZAS ---
+        // --- CONTROL DE FINANZAS ---
         function registrarTatuaje() {
             const cliente = document.getElementById('fin-cliente').value.trim();
             const diseno = document.getElementById('fin-diseno').value.trim();
@@ -878,29 +991,18 @@
             const gasto = parseFloat(document.getElementById('fin-gasto').value) || 0;
             const publicidad = parseFloat(document.getElementById('fin-publicidad').value) || 0;
 
-            if(!cliente || !diseno) return alert('Por favor llena los campos obligatorios de Cliente y Diseño.');
+            if(!cliente || !diseno) return alert('Campos obligatorios vacíos.');
 
             const idUnico = Date.now();
-            const nuevaFinanza = { 
-                id: idUnico, 
-                cliente, 
-                diseno, 
-                costo, 
-                gasto, 
-                publicidad, 
-                gananciaNeta: costo - (gasto + publicidad) 
-            };
+            const nueva = { id: idUnico, cliente, diseno, costo, gasto, publicidad, gananciaNeta: costo - (gasto + publicidad) };
             
             document.getElementById('fin-cliente').value = ''; document.getElementById('fin-diseno').value = '';
             document.getElementById('fin-costo').value = ''; document.getElementById('fin-gasto').value = ''; document.getElementById('fin-publicidad').value = '';
-            
-            db.ref(`finanzas/${idUnico}`).set(nuevaFinanza);
+            db.ref(`finanzas/${idUnico}`).set(nueva);
         }
 
         function eliminarFinanza(id) {
-            if(confirm('¿Eliminar registro financiero?')) { 
-                db.ref(`finanzas/${id}`).remove();
-            }
+            if(confirm('¿Eliminar registro?')) db.ref(`finanzas/${id}`).remove();
         }
 
         function renderizarFinanzas() {
@@ -910,46 +1012,37 @@
 
             finanzas.forEach(f => {
                 brutos += f.costo; gastos += (f.gasto + f.publicidad); netos += f.gananciaNeta;
-                const fila = document.createElement('tr');
-                fila.innerHTML = `
-                    <td><b>${f.cliente}</b></td><td>${f.diseno}</td><td>${formatearCOP(f.costo)}</td><td>${formatearCOP(f.gasto)}</td><td>${formatearCOP(f.publicidad)}</td><td class="txt-ganancia">${formatearCOP(f.gananciaNeta)}</td>
-                    <td><button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="eliminarFinanza(${f.id})">🗑️</button></td>
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${f.cliente}</b></td><td>${f.diseno}</td><td>${formatearCOP(f.costo)}</td><td>${formatearCOP(f.gasto)}</td><td>${formatearCOP(f.publicidad)}</td><td class="txt-ganancia">${formatearCOP(f.gananciaNeta)}</td>
+                        <td><button style="background:none; border:none; color:#ef4444; cursor:pointer;" onclick="eliminarFinanza(${f.id})">🗑️</button></td>
+                    </tr>
                 `;
-                tbody.appendChild(fila);
             });
-
             document.getElementById('total-ingresos').innerText = formatearCOP(brutos);
             document.getElementById('total-gastos').innerText = formatearCOP(gastos);
             document.getElementById('total-neto').innerText = formatearCOP(netos);
         }
 
-        // --- IDEAS ---
+        // --- BANCO DE IDEAS ---
         function agregarIdea() {
             const input = document.getElementById('nueva-idea-txt');
             if(!input.value.trim()) return;
-
             const idUnico = Date.now();
-            const nuevaIdea = { id: idUnico, texto: input.value.trim(), completada: false };
+            db.ref(`ideas/${idUnico}`).set({ id: idUnico, texto: input.value.trim(), completada: false });
             input.value = '';
-            
-            db.ref(`ideas/${idUnico}`).set(nuevaIdea);
         }
 
         function alternarIdea(id) {
             const idea = ideas.find(i => i.id === id);
-            if (idea) { 
-                db.ref(`ideas/${id}`).update({ completada: !idea.completada });
-            }
+            if (idea) db.ref(`ideas/${id}`).update({ completada: !idea.completada });
         }
 
-        function eliminarIdea(id) {
-            db.ref(`ideas/${id}`).remove();
-        }
+        function eliminarIdea(id) { db.ref(`ideas/${id}`).remove(); }
 
         function renderizarIdeas() {
             const contenedor = document.getElementById('ui-lista-ideas');
             contenedor.innerHTML = '';
-
             ideas.forEach(idea => {
                 const div = document.createElement('div');
                 div.className = `idea-item ${idea.completada ? 'completada' : ''}`;
@@ -962,10 +1055,25 @@
             });
         }
 
-        // Inicialización por defecto de la calculadora al cargar
-        window.onload = function() {
-            calcularPresupuesto();
-        };
+        // --- METODOS DE OBJETIVOS ---
+        function agregarObjetivo() {
+            const nombre = document.getElementById("obj-nombre").value;
+            const precio = parseInt(document.getElementById("obj-precio").value);
+            const tiempo = document.getElementById("obj-tiempo").value;
+            if (!nombre || !precio || !tiempo) return alert("Completa todos los campos del objetivo.");
+
+            db.ref("objetivos").push({ nombre, precio, tiempo });
+            document.getElementById("obj-nombre").value = "";
+            document.getElementById("obj-precio").value = "";
+            document.getElementById("obj-tiempo").value = "";
+        }
+
+        function eliminarObjetivo(id) {
+            if(confirm("¿Dar por cumplido o remover este objetivo?")) db.ref("objetivos").child(id).remove();
+        }
+
+        // Forzar cálculo inicial de calculadora al abrir la app
+        calcularPresupuesto();
     </script>
 </body>
 </html>
