@@ -281,7 +281,7 @@
         }
 
         table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
         th { color: var(--text-muted); text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
         .txt-ganancia { color: var(--status-done); font-weight: 700; }
 
@@ -432,6 +432,7 @@
         .tabla-historico-contenedor { margin-top: 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 25px; }
         .btn-guardar-calc { background: var(--neon-juanda); color: var(--bg-dark); border: none; padding: 12px 15px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-bottom: 15px; text-transform: uppercase; font-size: 0.85rem; }
         .btn-eliminar-registro { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+        .btn-check-objetivo { background: var(--status-done); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; margin-right: 4px; }
         
         .inputs-horario-militar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
         .input-militar { padding: 8px; background: var(--bg-input); border: 1px solid var(--border); color: white; border-radius: 6px; font-size: 0.8rem; width: 100%; box-sizing: border-box; }
@@ -440,6 +441,12 @@
         .grid-objetivo { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
         .grid-objetivo input { flex: 1; min-width: 150px; padding: 10px; background: var(--bg-input); border: 1px solid var(--border); color: white; border-radius: 6px; }
         .btn-objetivo { background: var(--status-done); color: white; border: none; padding: 10px 20px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        
+        /* Estilos específicos para la bitácora de observaciones de objetivos */
+        .obj-completado-fila { background: rgba(16, 185, 129, 0.04); }
+        .texto-obj-tocado { text-decoration: line-through; color: var(--status-done) !important; opacity: 0.8; }
+        .observacion-box { font-size: 0.8rem; margin-top: 5px; color: #cbd5e1; background: rgba(255,255,255,0.02); padding: 5px 8px; border-radius: 4px; border-left: 2px solid var(--text-muted); }
+        .observacion-box.cumplido { border-left-color: var(--status-done); }
     </style>
 </head>
 <body>
@@ -662,7 +669,7 @@
 
         <div class="seccion-objetivos">
             <h2 class="seccion-titulo" style="margin-top:0;">🎯 Definición de Objetivos (InkProgress)</h2>
-            <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 15px;">Establece metas financieras y de tiempo claras (Ej: Comprar insumos premium, Meta de ahorro mensual).</p>
+            <p style="color: var(--text-muted); font-size:0.85rem; margin-bottom: 15px;">Establece metas financieras. Ahora puedes marcarlas como cumplidas y dejar por escrito qué causó el éxito o el freno.</p>
             
             <div class="grid-objetivo">
                 <input type="text" id="obj-nombre" placeholder="Nombre del Objetivo">
@@ -675,7 +682,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Meta / Proyecto</th><th>Presupuesto Requerido</th><th>Plazo Estimado</th><th>Acción</th>
+                            <th>Meta / Proyecto</th><th>Presupuesto Requerido</th><th>Plazo Estimado</th><th>Estado & Observaciones</th><th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-tabla-objetivos"></tbody>
@@ -700,7 +707,6 @@
         let eventos = [];
         let ideas = [];
         let historicoCotizaciones = [];
-        let objetivos = [];
 
         let fechaActualCalendario = new Date();
 
@@ -763,12 +769,39 @@
             if (datos) {
                 for (let id in datos) {
                     const obj = datos[id];
+                    const estaCumplido = obj.cumplido === true;
+                    
+                    let claseFila = estaCumplido ? "obj-completado-fila" : "";
+                    let claseTexto = estaCumplido ? "texto-obj-tocado" : "";
+                    let textoBotonCheck = estaCumplido ? "✓ Cumplido" : "◽ Marcar Logrado";
+                    let colorObs = estaCumplido ? "cumplido" : "";
+
                     tbody.innerHTML += `
-                        <tr>
-                            <td style="font-weight:600; color:var(--text-main);">🎯 ${obj.nombre}</td>
+                        <tr class="${claseFila}">
+                            <td style="font-weight:600;" class="${claseTexto}">🎯 ${obj.nombre}</td>
                             <td style="color:var(--neon-juanda); font-weight:bold;">${formatearCOP(obj.precio)}</td>
                             <td><span style="background:rgba(83, 74, 183, 0.2); color:#a855f7; padding:2px 8px; border-radius:12px; font-size:0.75rem;">⏱️ ${obj.tiempo}</span></td>
-                            <td><button class="btn-eliminar-registro" onclick="eliminarObjetivo('${id}')">✕</button></td>
+                            <td>
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <span style="font-size:0.75rem; font-weight:bold; color:${estaCumplido ? 'var(--status-done)' : 'var(--status-pending)'};">
+                                        Status: ${estaCumplido ? 'COMPLETADO ✨' : 'EN DESARROLLO 🔥'}
+                                    </span>
+                                    <div class="observacion-box ${colorObs}">
+                                        <strong>Bitácora:</strong> ${obj.observacion || "Sin anotaciones aún."}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display:flex; gap:5px; flex-wrap:wrap;">
+                                    <button class="btn-check-objetivo" style="background:${estaCumplido ? '#1f1f26' : 'var(--status-done)'}; color:${estaCumplido ? 'var(--status-done)' : 'white'};" onclick="conmutarObjetivo('${id}', ${estaCumplido})">
+                                        ${textoBotonCheck}
+                                    </button>
+                                    <button class="btn-eliminar-registro" style="background:var(--border); color:white;" onclick="agregarObservacionObjetivo('${id}')">
+                                        📝 Nota
+                                    </button>
+                                    <button class="btn-eliminar-registro" onclick="eliminarObjetivo('${id}')">✕</button>
+                                </div>
+                            </td>
                         </tr>
                     `;
                 }
@@ -871,29 +904,7 @@
             document.getElementById('calc-res-prem').textContent = formatearCOP(base * 1.6);
         }
 
-        function guardarCotizacion() {
-            const hora = parseInt(document.getElementById('calc-hora').value);
-            const horas = parseFloat(document.getElementById('calc-horas').value);
-            const complejidadText = document.getElementById('calc-complejidad').options[document.getElementById('calc-complejidad').selectedIndex].text;
-            const materiales = parseInt(document.getElementById('calc-materiales').value);
-            const base = (hora * horas * parseFloat(document.getElementById('calc-complejidad').value)) + materiales;
-            
-            const nuevaCotizacion = {
-                fecha: new Date().toLocaleDateString('es-CO'),
-                hora: hora,
-                horas: horas,
-                complejidad: complejidadText,
-                materiales: materiales,
-                recomendado: base * 1.3
-            };
-            db.ref("historicoCotizaciones").push(nuevaCotizacion);
-        }
-
-        function eliminarCotizacion(id) {
-            if(confirm("¿Eliminar cotización?")) db.ref("historicoCotizaciones").child(id).remove();
-        }
-
-        // --- LÓGICA CALENDARIO MILITAR 24H ---
+        // --- CALENDARIO Y AGENDA ---
         const mesesAnos = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         
         function renderizarCalendario() {
@@ -961,8 +972,6 @@
         function renderizarEventosLista() {
             const listaUi = document.getElementById('lista-eventos-ui');
             listaUi.innerHTML = '';
-            
-            // Re-vincular snapshots mapeados con su llave primaria (ID) para eliminación directa de nodos de Firebase
             db.ref("eventos").once("value", (snapshot) => {
                 const datos = snapshot.val();
                 if(datos) {
@@ -981,6 +990,28 @@
                     }
                 }
             });
+        }
+
+        function guardarCotizacion() {
+            const hora = parseInt(document.getElementById('calc-hora').value);
+            const horas = parseFloat(document.getElementById('calc-horas').value);
+            const complejidadText = document.getElementById('calc-complejidad').options[document.getElementById('calc-complejidad').selectedIndex].text;
+            const materiales = parseInt(document.getElementById('calc-materiales').value);
+            const base = (hora * horas * parseFloat(document.getElementById('calc-complejidad').value)) + materiales;
+            
+            const nuevaCotizacion = {
+                fecha: new Date().toLocaleDateString('es-CO'),
+                hora: hora,
+                horas: horas,
+                complejidad: complejidadText,
+                materiales: materiales,
+                recomendado: base * 1.3
+            };
+            db.ref("historicoCotizaciones").push(nuevaCotizacion);
+        }
+
+        function eliminarCotizacion(id) {
+            if(confirm("¿Eliminar cotización?")) db.ref("historicoCotizaciones").child(id).remove();
         }
 
         // --- CONTROL DE FINANZAS ---
@@ -1055,21 +1086,44 @@
             });
         }
 
-        // --- METODOS DE OBJETIVOS ---
+        // --- LÓGICA DE OBJETIVOS (MODIFICADO CON CHECK Y BITÁCORA) ---
         function agregarObjetivo() {
-            const nombre = document.getElementById("obj-nombre").value;
-            const precio = parseInt(document.getElementById("obj-precio").value);
-            const tiempo = document.getElementById("obj-tiempo").value;
-            if (!nombre || !precio || !tiempo) return alert("Completa todos los campos del objetivo.");
+            const nombre = document.getElementById("obj-nombre").value.trim();
+            const precio = parseInt(document.getElementById("obj-precio").value) || 0;
+            const tiempo = document.getElementById("obj-tiempo").value.trim();
+            
+            if (!nombre || !tiempo) return alert("Completa el nombre y el plazo estimado del objetivo.");
 
-            db.ref("objetivos").push({ nombre, precio, tiempo });
+            db.ref("objetivos").push({
+                nombre: nombre,
+                precio: precio,
+                tiempo: tiempo,
+                cumplido: false,
+                observacion: "Sin anotaciones aún."
+            });
+
             document.getElementById("obj-nombre").value = "";
             document.getElementById("obj-precio").value = "";
             document.getElementById("obj-tiempo").value = "";
         }
 
+        function conmutarObjetivo(id, estadoActual) {
+            db.ref("objetivos").child(id).update({ cumplido: !estadoActual });
+        }
+
+        function agregarObservacionObjetivo(id) {
+            const anotacion = prompt("Escribe tu observación respecto a este objetivo (¿Qué funcionó bien o qué causó que no se lograra todavía?):");
+            if (anotacion === null) return; // Si cancela el prompt
+            
+            db.ref("objetivos").child(id).update({ 
+                observacion: anotacion.trim() || "Sin anotaciones aún." 
+            });
+        }
+
         function eliminarObjetivo(id) {
-            if(confirm("¿Dar por cumplido o remover este objetivo?")) db.ref("objetivos").child(id).remove();
+            if(confirm("¿Estás seguro de que quieres eliminar por completo esta meta de la lista?")) {
+                db.ref("objetivos").child(id).remove();
+            }
         }
 
         // Forzar cálculo inicial de calculadora al abrir la app
